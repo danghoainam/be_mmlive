@@ -5,7 +5,13 @@ const setupSwagger = require("./swagger"); // Import cấu hình Swagger
 const cors = require("cors");
 
 const app = express();
-app.use(cors());
+app.use(
+  cors({
+    origin: "*", // Chấp nhận tất cả các nguồn gốc. Bạn có thể thay đổi thành các domain cụ thể.
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
