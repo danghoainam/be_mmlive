@@ -28,7 +28,7 @@ const options = {
 const swaggerSpec = swaggerJsDoc(options);
 
 const setupSwagger = (app) => {
-  app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerSpec)); // Đổi đường dẫn
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec)); // Đổi đường dẫn
 };
 
 module.exports = setupSwagger;
