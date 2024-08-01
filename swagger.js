@@ -14,7 +14,7 @@ const swaggerDefinition = {
       description: "Development server",
     },
     {
-      url: "https://https://be-mmlive.vercel.app",
+      url: "https://be-mmlive.vercel.app",
       description: "Production server",
     },
   ],
