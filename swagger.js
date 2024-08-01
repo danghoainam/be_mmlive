@@ -13,6 +13,10 @@ const swaggerDefinition = {
       url: "http://localhost:3000",
       description: "Development server",
     },
+    {
+      url: "https://https://be-mmlive.vercel.app",
+      description: "Production server",
+    },
   ],
 };
 
