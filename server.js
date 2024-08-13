@@ -1,32 +1,37 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const db = require("./db");
-const setupSwagger = require("./swagger"); // Import cấu hình Swagger
+const setupSwagger = require("./swagger");
 const cors = require("cors");
 
 const app = express();
+
+// CORS middleware
 app.use(
   cors({
-    origin: "*", // Chấp nhận tất cả các nguồn gốc. Bạn có thể thay đổi thành các domain cụ thể.
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+// Body parser middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-setupSwagger(app); // Bật Swagger
+// Setup Swagger
+setupSwagger(app);
 
-// Ví dụ: Get all users
+// Swagger docs for GET /users
 /**
  * @swagger
  * /users:
  *   get:
- *     summary: Retrieve a list of users
- *     description: Retrieve a list of users from the database.
+ *     summary: Retrieve a list of tokens
+ *     description: Retrieve a list of tokens from the database.
  *     responses:
  *       200:
- *         description: A list of users.
+ *         description: A list of tokens.
  *         content:
  *           application/json:
  *             schema:
@@ -37,22 +42,18 @@ setupSwagger(app); // Bật Swagger
  *                   id:
  *                     type: integer
  *                     example: 1
- *                   name:
+ *                   token:
  *                     type: string
- *                     example: John Doe
- *                   email:
- *                     type: string
- *                     example: johndoe@example.com
- *                   age:
- *                     type: integer
- *                     example: 30
+ *                     example: "abcd1234"
  */
+
+// Swagger docs for POST /users
 /**
  * @swagger
  * /users:
  *   post:
- *     summary: Create a new user
- *     description: Adds a new user to the database.
+ *     summary: Update a user's token
+ *     description: Update the token for a specific user in the database.
  *     requestBody:
  *       required: true
  *       content:
@@ -60,16 +61,15 @@ setupSwagger(app); // Bật Swagger
  *           schema:
  *             type: object
  *             properties:
- *               token:
- *                 type: string
- *                 example: John Doe
  *               id:
  *                 type: integer
- *                 example: 0
- *
+ *                 example: 1
+ *               token:
+ *                 type: string
+ *                 example: "abcd1234"
  *     responses:
  *       200:
- *         description: The newly created user
+ *         description: The updated user token
  *         content:
  *           application/json:
  *             schema:
@@ -78,43 +78,50 @@ setupSwagger(app); // Bật Swagger
  *                 id:
  *                   type: integer
  *                   example: 1
- *                 name:
+ *                 token:
  *                   type: string
- *                   example: John Doe
- *                 email:
- *                   type: string
- *                   example: johndoe@example.com
- *                 age:
- *                   type: integer
- *                   example: 30
+ *                   example: "abcd1234"
  *       400:
- *         description: Bad request
+ *         description: Bad request - ID and token are required
+ *       404:
+ *         description: User not found
  */
+
+// Endpoint for GET /users
 app.get("/users", (req, res) => {
   const sql = "SELECT * FROM token";
   db.query(sql, (err, results) => {
-    if (err) throw err;
-    res.json(results);
+    if (err) {
+      console.error("Database query error", err);
+      return res.status(500).json({ error: "Database query error" });
+    }
+    res.json(results.rows); // PostgreSQL trả về `rows`
   });
 });
+
+// Endpoint for POST /users
 app.post("/users", (req, res) => {
   const { id, token } = req.body;
   if (!id || !token) {
     return res.status(400).json({ error: "ID and token are required" });
   }
-  const sql = "UPDATE token SET token = ? WHERE id = ?";
+  const sql = "UPDATE token SET token = $1 WHERE id = $2";
   db.query(sql, [token, id], (err, results) => {
-    if (err) throw err;
+    if (err) {
+      console.error("Database query error", err);
+      return res.status(500).json({ error: "Database query error" });
+    }
 
-    if (results.affectedRows === 0) {
+    if (results.rowCount === 0) {
+      // PostgreSQL sử dụng `rowCount` thay vì `affectedRows`
       return res.status(404).json({ error: "User not found" });
     }
 
     res.json({ id, token });
   });
 });
-// Các endpoint khác...
 
+// Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

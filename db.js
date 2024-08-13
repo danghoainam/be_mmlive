@@ -1,17 +1,19 @@
-const mysql = require("mysql2");
+const { Client } = require("pg");
 
-const connection = mysql.createConnection({
-  host: "sql12.freesqldatabase.com",
-  port: "3306",
-  user: "sql12723200",
-  password: "Vx1G5fZPhe",
-  database: "sql12723200",
+const client = new Client({
+  host: "john.db.elephantsql.com",
+  port: 5432, // Port mặc định của PostgreSQL là 5432
+  user: "rcmibzdl",
+  password: "A_DSyx_zzcT4BYORHUAtj70Z6mMZPCRv",
+  database: "rcmibzdl",
 });
 
-connection.connect((err) => {
-  debugger;
-  if (err) throw err;
-  console.log("Connected to MySQL");
+client.connect((err) => {
+  if (err) {
+    console.error("Connection error", err.stack);
+  } else {
+    console.log("Connected to PostgreSQL");
+  }
 });
 
-module.exports = connection;
+module.exports = client;
