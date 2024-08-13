@@ -44,7 +44,10 @@ setupSwagger(app);
  *                     example: 1
  *                   token:
  *                     type: string
- *                     example: "abcd1234"
+ *                     example: "abcd12342"
+ *                   key:
+ *                     type: string
+ *                     example: "abcd12342"
  */
 
 // Swagger docs for POST /users
@@ -53,7 +56,7 @@ setupSwagger(app);
  * /users:
  *   post:
  *     summary: Update a user's token
- *     description: Update the token for a specific user in the database.
+ *     description: Update the token and key for a specific user in the database.
  *     requestBody:
  *       required: true
  *       content:
@@ -61,28 +64,28 @@ setupSwagger(app);
  *           schema:
  *             type: object
  *             properties:
- *               id:
- *                 type: integer
- *                 example: 1
  *               token:
  *                 type: string
  *                 example: "abcd1234"
+ *               key:
+ *                 type: string
+ *                 example: "key1234"
  *     responses:
  *       200:
- *         description: The updated user token
+ *         description: The updated user token and key
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 id:
- *                   type: integer
- *                   example: 1
  *                 token:
  *                   type: string
  *                   example: "abcd1234"
+ *                 key:
+ *                   type: string
+ *                   example: "key1234"
  *       400:
- *         description: Bad request - ID and token are required
+ *         description: Bad request - token and key are required
  *       404:
  *         description: User not found
  */
@@ -101,23 +104,26 @@ app.get("/users", (req, res) => {
 
 // Endpoint for POST /users
 app.post("/users", (req, res) => {
-  const { id, token } = req.body;
-  if (!id || !token) {
-    return res.status(400).json({ error: "ID and token are required" });
+  debugger;
+  const { token, key } = req.body;
+  if (!token || !key) {
+    return res.status(400).json({ error: "Token and key are required" });
   }
-  const sql = "UPDATE token SET token = $1 WHERE id = $2";
-  db.query(sql, [token, id], (err, results) => {
+
+  const sql = "UPDATE token SET token = $1 WHERE key = $2";
+  db.query(sql, [token, key], (err, results) => {
     if (err) {
       console.error("Database query error", err);
       return res.status(500).json({ error: "Database query error" });
     }
 
     if (results.rowCount === 0) {
-      // PostgreSQL sử dụng `rowCount` thay vì `affectedRows`
-      return res.status(404).json({ error: "User not found" });
+      return res
+        .status(404)
+        .json({ error: "User not found or key does not match" });
     }
 
-    res.json({ id, token });
+    res.json({ token, key });
   });
 });
 
