@@ -1,19 +1,19 @@
-const { Client } = require("pg");
+const mysql = require("mysql2");
 
-const client = new Client({
-  host: "john.db.elephantsql.com",
-  port: 5432, // Port mặc định của PostgreSQL là 5432
-  user: "rcmibzdl",
-  password: "A_DSyx_zzcT4BYORHUAtj70Z6mMZPCRv",
-  database: "rcmibzdl",
+const connection = mysql.createConnection({
+  host: "mysql-ac34ba8-danghoainam1202-f2e4.h.aivencloud.com", // IPv6 address
+  port: 16661, // Default MySQL port
+  user: "avnadmin", // Replace with your MySQL username
+  password: "AVNS_HNPa91p6whqL9UyAjfc", // Replace with your MySQL password
+  database: "defaultdb", // Replace with your MySQL database name
 });
 
-client.connect((err) => {
+connection.connect((err) => {
   if (err) {
     console.error("Connection error", err.stack);
   } else {
-    console.log("Connected to PostgreSQL");
+    console.log("Connected to MySQL");
   }
 });
 
-module.exports = client;
+module.exports = connection;
