@@ -1,8 +1,9 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const db = require("./db");
-const setupSwagger = require("./swagger");
+const db = require("./db"); // Ensure this is set up for MySQL
 const cors = require("cors");
+const swaggerJsDoc = require("swagger-jsdoc");
+const swaggerUi = require("swagger-ui-express");
 
 const app = express();
 
@@ -19,8 +20,26 @@ app.use(
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Setup Swagger
-setupSwagger(app);
+// Swagger setup
+const swaggerOptions = {
+  swaggerDefinition: {
+    openapi: "3.0.0",
+    info: {
+      title: "User API",
+      version: "1.0.0",
+      description: "API for managing user tokens",
+    },
+    servers: [
+      {
+        url: "http://localhost:3000",
+      },
+    ],
+  },
+  apis: ["./server.js"], // Path to the API docs
+};
+
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Swagger docs for GET /users
 /**
@@ -98,26 +117,25 @@ app.get("/users", (req, res) => {
       console.error("Database query error", err);
       return res.status(500).json({ error: "Database query error" });
     }
-    res.json(results.rows); // PostgreSQL trả về `rows`
+    res.json(results); // MySQL returns results directly
   });
 });
 
 // Endpoint for POST /users
 app.post("/users", (req, res) => {
-  debugger;
   const { token, key } = req.body;
   if (!token || !key) {
     return res.status(400).json({ error: "Token and key are required" });
   }
 
-  const sql = "UPDATE token SET token = $1 WHERE key = $2";
+  const sql = "UPDATE token SET token = ? WHERE `key` = ?";
   db.query(sql, [token, key], (err, results) => {
     if (err) {
       console.error("Database query error", err);
       return res.status(500).json({ error: "Database query error" });
     }
 
-    if (results.rowCount === 0) {
+    if (results.affectedRows === 0) {
       return res
         .status(404)
         .json({ error: "User not found or key does not match" });
